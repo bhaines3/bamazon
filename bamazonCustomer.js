@@ -14,3 +14,16 @@ colors.setTheme({
 	debug: 'blue',
 	error: 'red'
 });
+
+var connection = mysql.createConnection({
+	host: "localhost",
+	port: 3307,
+	user: "root",
+	password: "root",
+	database: "bamazon_DB"
+});
+
+connection.connect(error => {
+	if(error) throw error;
+
+});
