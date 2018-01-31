@@ -31,7 +31,8 @@ connection.connect(error => {
 
 function showItemList(){
 	connection.query("SELECT * FROM products", function(err, res) {
-        if (err) throw err;
+		if (err) throw err;
+		console.log("Welcome to the wonderful world of".yellow + " BAMazon!!".silly)
 
 	inquirer.prompt([
 		{

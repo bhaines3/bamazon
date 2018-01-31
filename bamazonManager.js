@@ -29,7 +29,6 @@ var connection = mysql.createConnection({
   
   // Initial prompt to view menu
   function menu(){
-  
       inquirer.prompt([
           {
               name: "viewMenu",
@@ -56,6 +55,7 @@ var connection = mysql.createConnection({
           }
       });
   }
+  console.log("Welcome back".blue + " agent ".blue + agent);
   menu();
   
   function menu_viewProd(){
