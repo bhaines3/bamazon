@@ -1,7 +1,7 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var colors = require("colors");
-
+var agent;
 colors.setTheme({
 	silly: 'rainbow',
 	input: 'grey',
@@ -17,14 +17,19 @@ colors.setTheme({
 
 var connection = mysql.createConnection({
     host: "localhost",
-    port: 3307,
+    port: 3306,
     user: "root",
-    password: "root",
+    password: "",
     database: "bamazon_DB"
   });
   
   connection.connect(function(err) {
     if (err) throw err;
+
+    agent = connection.threadId;
+    console.log("Welcome back".blue + " agent ".blue + agent);
+    menu();
+
   });
   
   // Initial prompt to view menu
@@ -33,7 +38,7 @@ var connection = mysql.createConnection({
           {
               name: "viewMenu",
               type: "list",
-              message: "Hi Manager. What would you like to do today?",
+              message: "Hi " + agent + ". What would you like to do today?",
               choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product"]
           }
           
@@ -55,10 +60,10 @@ var connection = mysql.createConnection({
           }
       });
   }
-  console.log("Welcome back".blue + " agent ".blue + agent);
-  menu();
+//   console.log("Welcome back".blue + " agent ".blue + agent);
+//   menu();
   
-  function menu_viewProd(){
+  function menu_viewProd(addInv, addInventory){
       connection.query("SELECT * FROM products", function(err, res) {
           if (err) throw err;
   
@@ -68,15 +73,34 @@ var connection = mysql.createConnection({
                   type: "list",
                   message: "Available products",
                   choices: function(){
-                      var choices =[];
+                      var choices = [];
                       for (var i = 0; i < res.length; i++) {
-                          choices.push(res[i].item_id+": " +res[i].product_name+ "  Price: $" +res[i].price+ "  Quantity: "+res[i].stock_quantity)
-                      }
+												choices.push(res[i].item_id+": " +res[i].product_name+ " Price: $" +res[i].price+ " Quantity: "+res[i].stock_quantity)
+											}
                       return choices
                   }
               }
   
           ]).then(function(answers){
+					
+						var firstStep = answers.viewProducts.split(" ");
+						var secondStep = firstStep[0].split(":");
+						var itemId = parseInt(secondStep[0]);
+						console.log(itemId);
+						var chosenProd;
+						//loop
+						for (var i = 0; i < res.length; i++) {
+							if (res[i].item_id == itemId){
+								console.log(res[i].item_id + ": " + res[i].product_name + "  Price: $" + res[i].price + "  Quantity: " + res[i].stock_quantity)
+								chosenProd = res[i]
+							}
+						}
+
+						if (addInv == "addInv"){
+							addInventory(itemId, chosenProd.stock_quantity)
+            }else{
+                connection.end()
+            }
         
           });
       });
@@ -94,8 +118,9 @@ var connection = mysql.createConnection({
               else if (res[i].stock_quantity > 5) {
                   console.log(res[i].product_name+ " is in stock!")
               }	
-          }
-      });
+            }
+        })
+        connection.end()
   }
   
   function menu_addProd(){
@@ -147,24 +172,38 @@ var connection = mysql.createConnection({
               stock_quantity: newProdQuant,
           }, function(err, res) {
           if (err) throw err;
-          console.log(newProd+ " has been added to inventory!")
+					console.log(newProd+ " has been added to inventory!")
+					connection.end()
           });
       });
   }
   
   function menu_addInv(){
-      menu_viewProd();
-  
-      inquirer.prompt([
-          {
-              name: "addProductInventory",
-              type: "input",
-              message: "How many units would you like to add?"
-          }
-          
-      ]).then(function(answers){
-          var addedNumber = answers.addProductInventory;
-          console.log(addedNumber);
-      });
-      connection.end();
+			function addInventory(itemId, stock_quantity) {
+				inquirer.prompt([
+						{
+								name: "addProductInventory",
+								type: "input",
+								message: "How many units would you like to add?"
+						}
+						
+				]).then(function(answers){
+					var addedNumber = answers.addProductInventory;
+
+					var newStockQuantity = parseInt(addedNumber) + parseInt(stock_quantity);
+
+					connection.query("UPDATE products SET ? WHERE ?", [{
+						stock_quantity: newStockQuantity,
+					},{
+							item_id: itemId
+					}], function (err, res) {
+						if (err) throw err;
+						console.log("Your item has been added to inventory!")
+						connection.end();
+					});
+					
+
+					});
+			}
+		menu_viewProd("addInv", addInventory);
   }
