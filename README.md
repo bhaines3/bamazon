@@ -47,11 +47,10 @@ Created during Week 12 of University of Arizona Coding Bootcamp. The goal was to
 -----------------------
 
 
-## Demo Videos
+## Demo Video
 
-* BamazonCustomer.js ()
+* Bamazon Demo (https://www.youtube.com/watch?v=Ga9HSbio8wE)
 
-* BamazonManager.js ()
 
 ## Technologies used
 - Node.js
