@@ -38,7 +38,7 @@ function showItemList(){
 		{
 			name: "productId",
             type: "list",
-			message: "Which Product Id would you like to purchase?",
+			message: "Which Product would you like to purchase?",
 			choices: function(){
 				var choices =[];
 			    for (var i = 0; i < res.length; i++) {
